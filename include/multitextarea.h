@@ -33,6 +33,7 @@ private:
 	void Enter();
 	void Backspace();
 	void Paste();
+	void Copy();
 public:
 	MultiLineTextArea(float startX, float startY, size_t visibleLines, size_t visibleColumns, const char* fontPath, float fontSize_, float padding_, Color color_);
 	~MultiLineTextArea();

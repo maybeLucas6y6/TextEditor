@@ -56,6 +56,9 @@ void Line::EraseCharacter(size_t pos) {
 }
 void Line::InsertString(size_t pos, char* str, bool keepLeftoverText) {
 	size_t n = strlen(str) + 1;
+	/*if (n == 1) {
+		return;
+	}*/
 	if (keepLeftoverText == false) {
 		if (pos + n > m_capacity) {
 			m_capacity = pos + n;
@@ -64,7 +67,7 @@ void Line::InsertString(size_t pos, char* str, bool keepLeftoverText) {
 			delete[] m_data;
 			m_data = temp;
 		}
-		strcpy(m_data + pos, str);
+		memcpy(m_data + pos, str, n);
 		m_size = pos + n;
 	}
 	else {
