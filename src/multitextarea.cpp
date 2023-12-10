@@ -329,6 +329,7 @@ MultiLineTextArea::MultiLineTextArea(float startX, float startY, size_t visibleL
 		font = new Font(GetFontDefault());
 	}
 	fontSize = fontSize_;
+	chWidth = (fontSize * font->recs->width / font->baseSize) + font->glyphPadding / 2.0f;
 
 	numLines = 1;
 	maxLines = 1;
@@ -336,14 +337,14 @@ MultiLineTextArea::MultiLineTextArea(float startX, float startY, size_t visibleL
 	text[0] = new Line;
 	lin = col = 0;
 
-	focused = true;
+	focused = false;
 	selStartLin = selStartCol = selEndLin = selEndCol = 0;
 
 	padding = padding_;
 	visLin = visibleLines;
 	visCol = visibleColumns;
 	firstLin = firstCol = 0;
-	rec = new Rectangle{ startX, startY, visibleColumns * fontSize / 2.0f + 2.0f * padding, visibleLines * fontSize + 2.0f * padding };// TODO: this won t work for any font
+	rec = new Rectangle{ startX, startY, visibleColumns * chWidth + 2.0f * padding, visibleLines * fontSize + 2.0f * padding }; // TODO: this won t work for any font
 	recColor = new Color(color_);
 }
 MultiLineTextArea::~MultiLineTextArea() {
@@ -364,7 +365,6 @@ MultiLineTextArea::~MultiLineTextArea() {
 }
 void MultiLineTextArea::Draw() {
 	DrawRectangle((int)rec->x, (int)rec->y, (int)rec->width, (int)rec->height, *recColor);
-	float chw = fontSize / 2.0f;
 
 	for (size_t i = firstLin, posLin = 0; i < numLines && i < firstLin + visLin; i++, posLin++) {
 		if (text[i] == nullptr) continue;
@@ -396,16 +396,16 @@ void MultiLineTextArea::Draw() {
 
 			Color selColor = { 0, 120, 250, 100 };
 			if (i > sl && i < el) {
-				DrawRectangleRec({ rec->x + padding, rec->y + posLin * fontSize + padding, n * chw, fontSize }, selColor);
+				DrawRectangleRec({ rec->x + padding, rec->y + posLin * fontSize + padding, n * chWidth, fontSize }, selColor);
 			}
 			if (i == sl && sl == el) {
-				DrawRectangleRec({ rec->x + padding + (sc - firstCol) * chw, rec->y + padding + posLin * fontSize, (ec - sc) * chw, fontSize }, selColor);
+				DrawRectangleRec({ rec->x + padding + (sc - firstCol) * chWidth, rec->y + padding + posLin * fontSize, (ec - sc) * chWidth, fontSize }, selColor);
 			}
 			else if (i == sl) {
-				DrawRectangleRec({ rec->x + padding + (sc - firstCol) * chw, rec->y + padding + posLin * fontSize, (n - sc + firstCol) * chw, fontSize }, selColor);
+				DrawRectangleRec({ rec->x + padding + (sc - firstCol) * chWidth, rec->y + padding + posLin * fontSize, (n - sc + firstCol) * chWidth, fontSize }, selColor);
 			}
 			else if (i == el) {
-				DrawRectangleRec({ rec->x + padding, rec->y + padding + posLin * fontSize, (ec - firstCol) * chw, fontSize }, selColor);
+				DrawRectangleRec({ rec->x + padding, rec->y + padding + posLin * fontSize, (ec - firstCol) * chWidth, fontSize }, selColor);
 			}
 		}
 		// TODO: font m_size should not be always default
@@ -440,8 +440,10 @@ void MultiLineTextArea::Draw() {
 	strcat(pos, x);
 	DrawText(pos, 300, 300, 20, BLACK);
 
-	// TODO: figure out how to calculate text width based on a given font
-	DrawLineV({ rec->x + padding + (col - firstCol) * chw, rec->y + padding + (lin - firstLin) * fontSize }, { rec->x + padding + (col - firstCol) * chw, rec->y + padding + (lin - firstLin + 1) * fontSize }, RED);
+	if (focused) {
+		// TODO: figure out how to calculate text width based on a given font
+		DrawLineV({ rec->x + padding + (col - firstCol) * chWidth, rec->y + padding + (lin - firstLin) * fontSize }, { rec->x + padding + (col - firstCol) * chWidth, rec->y + padding + (lin - firstLin + 1) * fontSize }, RED);
+	}
 }
 Line** MultiLineTextArea::ParseText(char* str, size_t& size) {
 	size = 0;
@@ -516,11 +518,21 @@ void MultiLineTextArea::PushLine(Line* line) {
 }
 void MultiLineTextArea::Edit() {
 	auto mpos = GetMousePosition();
-	if ((mpos.x >= rec->x && mpos.x < rec->x + rec->width) && (mpos.y >= rec->y && mpos.y < rec->y + rec->height)) {
+	bool inBounds = (mpos.x >= rec->x && mpos.x < rec->x + rec->width) && (mpos.y >= rec->y && mpos.y < rec->y + rec->height);
+	if (inBounds) {
 		SetMouseCursor(MOUSE_CURSOR_IBEAM); // TODO: shouldn t set this that often
 	}
 	else {
 		SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+	}
+
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+		if (inBounds) {
+			focused = true;
+		}
+		else {
+			focused = false;
+		}
 	}
 
 	int chr = GetCharPressed();

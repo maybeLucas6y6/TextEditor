@@ -9,7 +9,7 @@ struct Color;
 class MultiLineTextArea {
 private:
 	Font* font; // TODO: should be able to use more than one font
-	float fontSize;
+	float fontSize, chWidth;
 
 	Line** text;
 	size_t numLines, maxLines;
