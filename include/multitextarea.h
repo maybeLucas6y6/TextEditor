@@ -18,6 +18,7 @@ private:
 	size_t lin, col;
 
 	bool focused;
+	bool validSelection;
 	size_t selStartLin, selStartCol, selEndLin, selEndCol;
 
 	Rectangle rec;
