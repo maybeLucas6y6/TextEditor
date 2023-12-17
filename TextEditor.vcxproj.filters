@@ -21,9 +21,6 @@
     <ClCompile Include="src\multitextarea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\line.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Font Include="resources\IBMPlexMono-Medium.ttf" />
@@ -32,12 +29,6 @@
     <Font Include="resources\IBMPlexMono-Bold.ttf" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\multitextarea.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\line.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="external\include\raylib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -47,8 +38,19 @@
     <ClInclude Include="external\include\rlgl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\multitextarea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\lib\raylib.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include=".gitignore" />
+    <None Include=".gitattributes" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>

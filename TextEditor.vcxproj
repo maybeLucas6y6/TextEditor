@@ -133,9 +133,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\line.cpp" />
-    <ClCompile Include="src\multitextarea.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\multitextarea.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="resources\IBMPlexMono-Bold.ttf" />
@@ -147,11 +146,18 @@
     <ClInclude Include="external\include\raylib.h" />
     <ClInclude Include="external\include\raymath.h" />
     <ClInclude Include="external\include\rlgl.h" />
-    <ClInclude Include="include\line.h" />
     <ClInclude Include="include\multitextarea.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\lib\raylib.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
