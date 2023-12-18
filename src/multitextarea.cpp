@@ -31,11 +31,12 @@ void MultiLineTextArea::EraseSelection() {
 
 	if (sl != el) {
 		size_t nlin = el - sl - 1;
-		text.erase(text.begin() + sl + 1, text.begin() + sl + 1 + nlin);
 
 		text[sl].erase(sc);
 		text[sl] += text[el].substr(ec);
-		text.erase(text.begin() + el);
+		text[el].erase(0, ec);
+		if (text[el].empty()) nlin++;
+		text.erase(text.begin() + sl + 1, text.begin() + sl + 1 + nlin);
 	}
 	else {
 		text[sl].erase(sc, ec - sc);
@@ -142,15 +143,13 @@ void MultiLineTextArea::Enter() {
 }
 void MultiLineTextArea::Backspace() {
 	if (!(selStartLin == selEndLin && selStartCol == selEndCol)) {
-		col = selStartCol < selEndCol ? selStartCol : selEndCol;
+		EraseSelection();
 		if (col < firstCol) {
 			firstCol = col;
 		}
-		lin = selStartLin < selEndLin ? selStartLin : selEndLin;
 		if (lin < firstLin) {
 			firstLin = lin;
 		}
-		EraseSelection();
 	}
 	else if (col > 0) {
 		col--;
@@ -353,12 +352,13 @@ void MultiLineTextArea::PushLine(std::string line) {
 void MultiLineTextArea::Edit() {
 	auto mpos = GetMousePosition();
 	bool inBounds = (mpos.x >= rec.x && mpos.x < rec.x + rec.width) && (mpos.y >= rec.y && mpos.y < rec.y + rec.height);
-	if (inBounds) {
-		SetMouseCursor(MOUSE_CURSOR_IBEAM); // TODO: shouldn t set this that often
-	}
-	else {
-		SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-	}
+	// TODO: maybe create a static member to avoid conflict
+	//if (inBounds) {
+	//	SetMouseCursor(MOUSE_CURSOR_IBEAM); // TODO: shouldn t set this that often
+	//}
+	//else {
+	//	SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+	//}
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 		if (inBounds) {
