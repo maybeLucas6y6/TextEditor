@@ -18,15 +18,12 @@ private:
 	size_t lin, col;
 
 	bool focused;
-	bool validSelection;
-	size_t selStartLin, selStartCol, selEndLin, selEndCol;
 
 	Rectangle rec;
 	float padding;
 	Color textColor, bgColor;
 	void MergeLines(size_t destination, size_t source);
 	void InsertLine(size_t pos, std::string line);
-	void EraseSelection();
 	void ToPreviousLine();
 	void ToNextLine();
 	void ToPreviousColumn();

@@ -10,48 +10,7 @@ void MultiLineTextArea::MergeLines(size_t destination, size_t source) {
 void MultiLineTextArea::InsertLine(size_t pos, std::string line) {
 	text.insert(text.begin() + pos, line);
 }
-void MultiLineTextArea::EraseSelection() {
-	size_t sl, sc, el, ec;
-	if (selStartLin < selEndLin) {
-		sl = selStartLin;
-		el = selEndLin;
-	}
-	else {
-		sl = selEndLin;
-		el = selStartLin;
-	}
-	if (selStartCol < selEndCol) {
-		sc = selStartCol;
-		ec = selEndCol;
-	}
-	else {
-		sc = selEndCol;
-		ec = selStartCol;
-	}
-
-	if (sl != el) {
-		size_t nlin = el - sl - 1;
-
-		text[sl].erase(sc);
-		text[sl] += text[el].substr(ec);
-		text[el].erase(0, ec);
-		if (text[el].empty()) nlin++;
-		text.erase(text.begin() + sl + 1, text.begin() + sl + 1 + nlin);
-	}
-	else {
-		text[sl].erase(sc, ec - sc);
-	}
-	lin = sl;
-	col = sc;
-	selStartLin = selStartCol = selEndLin = selEndCol = 0;
-	validSelection = false;
-}
 void MultiLineTextArea::ToPreviousLine() {
-	if (validSelection && !IsKeyDown(KEY_LEFT_SHIFT)) {
-		selStartLin = selStartCol = selEndLin = selEndCol = 0;
-		validSelection = false;
-		return;
-	}
 	if (lin > 0) {
 		lin--;
 		if (lin < firstLin) {
@@ -66,11 +25,6 @@ void MultiLineTextArea::ToPreviousLine() {
 	}
 }
 void MultiLineTextArea::ToNextLine() {
-	if (validSelection && !IsKeyDown(KEY_LEFT_SHIFT)) {
-		selStartLin = selStartCol = selEndLin = selEndCol = 0;
-		validSelection = false;
-		return;
-	}
 	if (lin < text.size() - 1) {
 		lin++;
 		if (lin >= firstLin + visLin) {
@@ -85,11 +39,6 @@ void MultiLineTextArea::ToNextLine() {
 	}
 }
 void MultiLineTextArea::ToPreviousColumn() {
-	if (validSelection && !IsKeyDown(KEY_LEFT_SHIFT)) {
-		selStartLin = selStartCol = selEndLin = selEndCol = 0;
-		validSelection = false;
-		return;
-	}
 	if (col > 0) {
 		col--;
 		if (col < firstCol) {
@@ -108,11 +57,6 @@ void MultiLineTextArea::ToPreviousColumn() {
 	}
 }
 void MultiLineTextArea::ToNextColumn() {
-	if (validSelection && !IsKeyDown(KEY_LEFT_SHIFT)) {
-		selStartLin = selStartCol = selEndLin = selEndCol = 0;
-		validSelection = false;
-		return;
-	}
 	if (col < text[lin].size()) {
 		col++;
 		if (col >= firstCol + visCol) {
@@ -129,9 +73,6 @@ void MultiLineTextArea::ToNextColumn() {
 	}
 }
 void MultiLineTextArea::Enter() {
-	if (!(selStartLin == selEndLin && selStartCol == selEndCol)) {
-		EraseSelection();
-	}
 	lin++;
 	if (lin >= firstLin + visLin) {
 		firstLin++;
@@ -142,16 +83,7 @@ void MultiLineTextArea::Enter() {
 	firstCol = 0;
 }
 void MultiLineTextArea::Backspace() {
-	if (!(selStartLin == selEndLin && selStartCol == selEndCol)) {
-		EraseSelection();
-		if (col < firstCol) {
-			firstCol = col;
-		}
-		if (lin < firstLin) {
-			firstLin = lin;
-		}
-	}
-	else if (col > 0) {
+	if (col > 0) {
 		col--;
 		text[lin].erase(col, 1);
 		if (col < firstCol) {
@@ -175,10 +107,6 @@ void MultiLineTextArea::Paste() {
 	size_t n = clipboard.size();
 	if (n == 0) return;
 
-	if (!(selStartLin == selEndLin && selStartCol == selEndCol)) {
-		EraseSelection();
-	}
-
 	std::vector<std::string> temp = ParseText(clipboard);
 	lin = lin + temp.size() - 1;
 	col = temp[temp.size() - 1].size();
@@ -186,24 +114,7 @@ void MultiLineTextArea::Paste() {
 	text = temp;
 }
 void MultiLineTextArea::Copy() {
-	if (selStartLin == selEndLin && selStartCol == selEndCol) return;
-	size_t sl, sc, el, ec;
-	if (selStartLin < selEndLin) {
-		sl = selStartLin;
-		el = selEndLin;
-	}
-	else {
-		sl = selEndLin;
-		el = selStartLin;
-	}
-	if (selStartCol < selEndCol) {
-		sc = selStartCol;
-		ec = selEndCol;
-	}
-	else {
-		sc = selEndCol;
-		ec = selStartCol;
-	}
+	size_t sl = 0, sc = 0, el = text.size() - 1, ec = text[text.size() - 1].size(); // TODO: might break, would add size - 1
 
 	if (sl == el) {
 		SetClipboardText(text[sl].substr(sc, ec - sc).c_str());
@@ -238,8 +149,6 @@ MultiLineTextArea::MultiLineTextArea(float startX, float startY, size_t visibleL
 	text.push_back("");
 
 	focused = false;
-	validSelection = false;
-	selStartLin = selStartCol = selEndLin = selEndCol = 0;
 
 	firstLin = firstCol = 0;
 	rec = { startX, startY, visibleColumns * chWidth + 2.0f * padding, visibleLines * fontSize + 2.0f * padding }; // TODO: this won t work for any font
@@ -257,49 +166,6 @@ void MultiLineTextArea::Draw() {
 		size_t n = (firstCol + visCol) > text[i].size() ? text[i].size() - firstCol + 1 : visCol;
 		std::string cropped = text[i].substr(firstCol, n);
 
-		if (!(selStartLin == selEndLin && selStartCol == selEndCol)) {
-			size_t sl, sc, el, ec;
-			if (selStartLin < selEndLin) {
-				sl = selStartLin;
-				el = selEndLin;
-			}
-			else {
-				sl = selEndLin;
-				el = selStartLin;
-			}
-			if (selStartCol < selEndCol) {
-				sc = selStartCol;
-				ec = selEndCol;
-			}
-			else {
-				sc = selEndCol;
-				ec = selStartCol;
-			}
-
-			std::string selection;
-			selection += std::to_string(sl);
-			selection += ":";
-			selection += std::to_string(sc);
-			selection += "-";
-			selection += std::to_string(el);
-			selection += ":";
-			selection += std::to_string(ec);
-			DrawText(selection.c_str(), rec.x + rec.width + 5, rec.y + fontSize + 5, fontSize, BLACK);
-
-			Color selColor = { 0, 120, 250, 100 };
-			if (i > sl && i < el) {
-				DrawRectangleRec({ rec.x + padding, rec.y + posLin * fontSize + padding, n * chWidth, fontSize }, selColor);
-			}
-			if (i == sl && sl == el) {
-				DrawRectangleRec({ rec.x + padding + (sc - firstCol) * chWidth, rec.y + padding + posLin * fontSize, (ec - sc) * chWidth, fontSize }, selColor);
-			}
-			else if (i == sl) {
-				DrawRectangleRec({ rec.x + padding + (sc - firstCol) * chWidth, rec.y + padding + posLin * fontSize, (n - sc + firstCol) * chWidth, fontSize }, selColor);
-			}
-			else if (i == el) {
-				DrawRectangleRec({ rec.x + padding, rec.y + padding + posLin * fontSize, (ec - firstCol) * chWidth, fontSize }, selColor);
-			}
-		}
 		DrawTextEx(font, cropped.c_str(), { rec.x + padding, rec.y + posLin * fontSize + padding }, fontSize, 2, textColor);
 	}
 
@@ -365,20 +231,14 @@ void MultiLineTextArea::Edit() {
 			focused = true;
 		}
 		else {
-			selStartLin = selStartCol = selEndLin = selEndCol = 0;
 			focused = false;
 		}
 	}
 
 	if (!focused) return;
-	bool selection = !(selStartLin == selEndLin && selStartCol == selEndCol);
 
 	int chr = GetCharPressed();
 	if (chr != 0) {
-		if (selection) {
-			EraseSelection();
-			selection = false;
-		}
 		text[lin].insert(col, 1, chr);
 		if (text[lin].size() >= visCol) {
 			firstCol++;
@@ -389,12 +249,7 @@ void MultiLineTextArea::Edit() {
 	int key = GetKeyPressed();
 	if (key == 0) return;
 
-	if (key == KEY_LEFT_SHIFT) {
-		selStartLin = lin;
-		selStartCol = col;
-		validSelection = true;
-	}
-	else if (key == KEY_UP) {
+	if (key == KEY_UP) {
 		ToPreviousLine(); 
 	}
 	else if (key == KEY_DOWN) {
@@ -423,20 +278,11 @@ void MultiLineTextArea::Edit() {
 			// TODO: save to file
 			std::cout << "Command\n";
 		}
-		else if (key == KEY_V) {
-			Paste();
-		}
-		else if (key == KEY_C) {
+		else if (IsKeyPressed(KEY_C)) {
 			Copy();
 		}
-		else if (key == KEY_A) {
-			selStartLin = selEndCol = 0;
-			selEndLin = text.size() - 1;
-			selEndCol = text[selEndLin].size();
+		else if (IsKeyPressed(KEY_V)) {
+			Paste();
 		}
-	}
-	if (IsKeyDown(KEY_LEFT_SHIFT) && validSelection) {
-		selEndLin = lin;
-		selEndCol = col;
 	}
 }
